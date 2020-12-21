@@ -28,6 +28,8 @@ tags:
     description: 'User login'
   - name: Users
     description: 'User management'
+  - name: Results
+    description: 'Result management'
 paths:
   /login_check:
     post:
@@ -210,6 +212,59 @@ paths:
           headers:
             Allow:
               $ref: '#/components/headers/Allow'
+  /results:
+    get:
+      tags: [ Results ]
+      summary: Retrieves the collection of Result resources.
+      description: 'Returns all results from the system that the user has access to.'
+      operationId: api_results_cget
+      security:
+        - MiWApiSecurity: []
+      responses:
+        '200':
+          description: 'Array of results'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results: { description: 'Results array', type: array, items: { $ref: '#/components/schemas/Result' } }
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+        '401':
+          $ref: '#/components/responses/401_Unauthorized_Response'
+        '403':
+          $ref: '#/components/responses/403_Forbidden_Response'
+        '404':
+          $ref: '#/components/responses/404_Resource_Not_Found_Response'
+    post:
+      tags: [ Results ]
+      summary: Creates a Result resource.
+      description: 'Creates a new result'
+      operationId: api_results_post
+      security:
+        - MiWApiSecurity: []
+      requestBody:
+        $ref: '#/components/requestBodies/ResultRequestBody'
+      responses:
+        '201':
+          description: '`Created`: result created'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Result'
+          headers:
+            Location:
+              $ref: '#/components/headers/Location'
+        '400':
+          $ref: '#/components/responses/400_BadRequest_Response'
+        '401':
+          $ref: '#/components/responses/401_Unauthorized_Response'
+        '403':
+          $ref: '#/components/responses/403_Forbidden_Response'
+        '422':
+          $ref: '#/components/responses/422_UnprocessableEntity_Response'
 
 components:
   headers:
@@ -259,6 +314,46 @@ components:
               href: /api/v1/users
             self:
               href: /api/v1/users/1508
+    Result:
+      type: object
+      properties:
+        id:
+          description: 'Result Id'
+          type: integer
+          format: int64
+        result:
+          description: 'Result'
+          type: integer
+          format: int64
+        user:
+          description: 'User Id'
+          type: integer
+          format: int64
+        date:
+          description: 'Creation date'
+          type: string
+          format: date
+        _links:
+          description: link relations
+          type: object
+          properties:
+            parent:
+              type: object
+              properties: {"href": { "type": "string", "format": "url" }}
+            self:
+              type: object
+              properties: {"href": { "type": "string", "format": "url" }}
+      example:
+        result:
+          id: 1508
+          result: 14
+          user: 1
+          date: '2020-12-21 11:30:45'
+          _links:
+            parent:
+              href: /api/v1/results
+            self:
+              href: /api/v1/results/1508
     Message:
       type: object
       description: HTTP response message
