@@ -11,6 +11,7 @@
 
 namespace App\Entity;
 
+use Cassandra\Date;
 use DateTime;
 use Doctrine\ORM\Mapping as ORM;
 use JsonSerializable;
@@ -69,7 +70,7 @@ class Result implements JsonSerializable
      *     )
      * })
      */
-    private User $user;
+    private ?User $user;
 
     /**
      * Result time
@@ -80,7 +81,7 @@ class Result implements JsonSerializable
      *     nullable = false
      *     )
      */
-    private DateTime $time;
+    private ?DateTime $time;
 
     /**
      * Result constructor.
@@ -91,8 +92,8 @@ class Result implements JsonSerializable
      */
     public function __construct(
         int $result = 0,
-        ?User $user = null,
-        ?DateTime $time = null
+        User $user = null,
+        DateTime $time = null
     ) {
         $this->id     = 0;
         $this->result = $result;
@@ -117,9 +118,9 @@ class Result implements JsonSerializable
     }
 
     /**
-     * @return User
+     * @return User|null
      */
-    public function getUser(): User
+    public function getUser(): ?User
     {
         return $this->user;
     }
