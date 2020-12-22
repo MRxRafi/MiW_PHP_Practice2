@@ -421,10 +421,8 @@ components:
           type: integer
           format: int64
         user:
-          description: 'User Id'
-          type: integer
-          format: int64
-        date:
+          $ref: '#/components/schemas/User'
+        time:
           description: 'Creation date'
           type: string
           format: date
@@ -443,7 +441,7 @@ components:
           id: 1508
           result: 14
           user: 1
-          date: '2020-12-21 11:30:45'
+          time: '2020-12-21 11:30:45'
           _links:
             parent:
               href: /api/v1/results
@@ -552,14 +550,14 @@ components:
                 description: 'User identifier'
                 type: integer
                 format: int64
-              date:
-                description: 'Creation date'
+              time:
+                description: 'Creation time'
                 type: string
                 format: date
             example:
               result: 1
               user: 1
-              date: "2020-12-22 11:54:20"
+              time: "2020-12-22 11:54:20"
     LoginRequestBody:
       description: Registered user **e-mail** and **password**
       required: true

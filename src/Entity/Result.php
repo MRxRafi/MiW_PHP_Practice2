@@ -29,6 +29,10 @@ use JsonSerializable;
  */
 class Result implements JsonSerializable
 {
+    public const RESULT_ATTR = 'result';
+    public const USER_ATTR = 'user';
+    public const TIME_ATTR = 'time';
+
     /**
      * Result id
      *
