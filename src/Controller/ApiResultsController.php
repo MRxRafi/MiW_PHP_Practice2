@@ -88,7 +88,7 @@ class ApiResultsController extends AbstractController
 
         return Utils::apiResponse(
             Response::HTTP_OK,
-            [ 'results' => array_map(fn ($u) =>  ['results' => $u], $results) ],
+            [ 'results' => array_map(fn ($u) =>  ['result' => $u], $results) ],
             $format,
             [
                 self::HEADER_CACHE_CONTROL => 'must-revalidate',
@@ -99,17 +99,17 @@ class ApiResultsController extends AbstractController
 
     /**
      * GET Action
-     * Summary: Retrieves a User resource based on a single ID.
-     * Notes: Returns the user identified by &#x60;userId&#x60;.
+     * Summary: Retrieves a Result resource based on a single ID.
+     * Notes: Returns the result identified by &#x60;resultId&#x60;.
      *
      * @param Request $request
-     * @param  int $userId User id
+     * @param  int $resultId Result id
      * @return Response
      * @Route(
-     *     path="/{userId}.{_format}",
+     *     path="/{resultId}.{_format}",
      *     defaults={ "_format": null },
      *     requirements={
-     *          "userId": "\d+",
+     *          "resultId": "\d+",
      *          "_format": "json|xml"
      *     },
      *     methods={ Request::METHOD_GET },
@@ -122,48 +122,55 @@ class ApiResultsController extends AbstractController
      *     message="`Unauthorized`: Invalid credentials."
      * )
      */
-    /*public function getAction(Request $request, int $userId): Response
+    public function getAction(Request $request, int $resultId): Response
     {
-        $user = $this->entityManager
-            ->getRepository(User::class)
-            ->find($userId);
+        $result = $this->entityManager
+            ->getRepository(Result::class)
+            ->find($resultId);
+
+        if (!$this->isGranted(self::ROLE_ADMIN)) {
+            if($result->getUser()->getId() != $this->getUser()->getId()) {
+                $result = null;
+            }
+        }
+
         $format = Utils::getFormat($request);
 
-        if (empty($user)) {
+        if (empty($result)) {
             return $this->error404($format);
         }
 
         return Utils::apiResponse(
             Response::HTTP_OK,
-            [ User::USER_ATTR => $user ],
+            [ User::USER_ATTR => $result ],
             $format,
             [
                 self::HEADER_CACHE_CONTROL => 'must-revalidate',
-                self::HEADER_ETAG => md5(json_encode($user)),
+                self::HEADER_ETAG => md5(json_encode($result)),
             ]
         );
-    }*/
+    }
 
     /**
      * Summary: Provides the list of HTTP supported methods
      * Notes: Return a &#x60;Allow&#x60; header with a list of HTTP supported methods.
      *
-     * @param  int $userId User id
+     * @param  int $resultId Result id
      * @return Response
      * @Route(
-     *     path="/{userId}.{_format}",
-     *     defaults={ "userId" = 0, "_format": "json" },
+     *     path="/{resultId}.{_format}",
+     *     defaults={ "resultId" = 0, "_format": "json" },
      *     requirements={
-     *          "userId": "\d+",
+     *          "resultId": "\d+",
      *         "_format": "json|xml"
      *     },
      *     methods={ Request::METHOD_OPTIONS },
      *     name="options"
      * )
      */
-    /*public function optionsAction(int $userId): Response
+    public function optionsAction(int $resultId): Response
     {
-        $methods = $userId
+        $methods = $resultId
             ? [ Request::METHOD_GET, Request::METHOD_PUT, Request::METHOD_DELETE ]
             : [ Request::METHOD_GET, Request::METHOD_POST ];
         $methods[] = Request::METHOD_OPTIONS;
@@ -176,21 +183,21 @@ class ApiResultsController extends AbstractController
                 self::HEADER_CACHE_CONTROL => 'public, inmutable'
             ]
         );
-    }*/
+    }
 
     /**
      * DELETE Action
-     * Summary: Removes the User resource.
-     * Notes: Deletes the user identified by &#x60;userId&#x60;.
+     * Summary: Removes the Result resource.
+     * Notes: Deletes the result identified by &#x60;resultId&#x60;.
      *
      * @param   Request $request
-     * @param   int $userId User id
+     * @param   int $resultId Result id
      * @return  Response
      * @Route(
-     *     path="/{userId}.{_format}",
+     *     path="/{resultId}.{_format}",
      *     defaults={ "_format": null },
      *     requirements={
-     *          "userId": "\d+",
+     *          "resultId": "\d+",
      *         "_format": "json|xml"
      *     },
      *     methods={ Request::METHOD_DELETE },
@@ -203,30 +210,31 @@ class ApiResultsController extends AbstractController
      *     message="`Unauthorized`: Invalid credentials."
      * )
      */
-    /*public function deleteAction(Request $request, int $userId): Response
+    public function deleteAction(Request $request, int $resultId): Response
     {
-        // Puede crear un usuario sólo si tiene ROLE_ADMIN
-        if (!$this->isGranted(self::ROLE_ADMIN)) {
+        $result = $this->entityManager
+            ->getRepository(Result::class)
+            ->find($resultId);
+        $format = Utils::getFormat($request);
+
+        if (null === $result) {   // 404 - Not Found
+            return $this->error404($format);
+        }
+
+        // Puede borrar un resultado sólo si tiene ROLE_ADMIN o es un resultado del User
+        if (!$this->isGranted(self::ROLE_ADMIN) ||
+            $this->getUser()->getId() != $result->getUser()->getId()) {
             throw new HttpException(   // 403
                 Response::HTTP_FORBIDDEN,
                 '`Forbidden`: you don\'t have permission to access'
             );
         }
-        $format = Utils::getFormat($request);
 
-        $user = $this->entityManager
-            ->getRepository(User::class)
-            ->find($userId);
-
-        if (null === $user) {   // 404 - Not Found
-            return $this->error404($format);
-        }
-
-        $this->entityManager->remove($user);
+        $this->entityManager->remove($result);
         $this->entityManager->flush();
 
         return Utils::apiResponse(Response::HTTP_NO_CONTENT);
-    }*/
+    }
 
     /**
      * POST action
