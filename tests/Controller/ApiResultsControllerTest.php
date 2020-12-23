@@ -313,6 +313,39 @@ class ApiResultsControllerTest extends BaseTestCase
     }
 
     /**
+     * Test PUT    /results/{resultId} 403 FORBIDDEN
+     * Test DELETE /results/{resultId} 403 FORBIDDEN
+     *
+     * @param string $method
+     * @param string $uri
+     * @dataProvider routeProvider403()
+     * @return void
+     * @depends testPostResultAction201Created
+     * @uses \App\EventListener\ExceptionListener
+     */
+    public function testUserStatus403Forbidden(string $method, string $uri): void
+    {
+        $headers = $this->getTokenHeaders(
+            self::$role_user[User::EMAIL_ATTR],
+            self::$role_user[User::PASSWD_ATTR]
+        );
+        self::$client->request($method, $uri, [], [], $headers);
+        $response = self::$client->getResponse();
+
+        self::assertSame(Response::HTTP_FORBIDDEN, $response->getStatusCode());
+        self::assertJson((string) $response->getContent());
+        $r_body = (string) $response->getContent();
+        self::assertStringContainsString(Message::CODE_ATTR, $r_body);
+        self::assertStringContainsString(Message::MESSAGE_ATTR, $r_body);
+        $r_data = json_decode($r_body, true);
+        self::assertSame(Response::HTTP_FORBIDDEN, $r_data[Message::CODE_ATTR]);
+        self::assertSame(
+            '`Forbidden`: you don\'t have permission to access',
+            $r_data[Message::MESSAGE_ATTR]
+        );
+    }
+
+    /**
      * Test DELETE /results/{resultId} 204 No Content
      *
      * @param   array $result result returned by testPostResultAction201()
@@ -324,7 +357,10 @@ class ApiResultsControllerTest extends BaseTestCase
      */
     public function testDeleteResultAction204NoContent(array $result): int
     {
-        $headers = $this->getTokenHeaders();
+        $headers = $this->getTokenHeaders(
+            self::$role_admin[User::EMAIL_ATTR],
+            self::$role_admin[User::PASSWD_ATTR]);
+
         self::$client->request(
             Request::METHOD_DELETE,
             self::RUTA_API . '/' . $result['id'],
@@ -458,38 +494,6 @@ class ApiResultsControllerTest extends BaseTestCase
     }
 
     /**
-     * Test PUT    /results/{resultId} 403 FORBIDDEN
-     * Test DELETE /results/{resultId} 403 FORBIDDEN
-     *
-     * @param string $method
-     * @param string $uri
-     * @dataProvider routeProvider403()
-     * @return void
-     * @uses \App\EventListener\ExceptionListener
-     */
-//    public function testUserStatus403Forbidden(string $method, string $uri): void
-//    {
-//        $headers = $this->getTokenHeaders(
-//            self::$role_user[User::EMAIL_ATTR],
-//            self::$role_user[User::PASSWD_ATTR]
-//        );
-//        self::$client->request($method, $uri, [], [], $headers);
-//        $response = self::$client->getResponse();
-//
-//        self::assertSame(Response::HTTP_FORBIDDEN, $response->getStatusCode());
-//        self::assertJson((string) $response->getContent());
-//        $r_body = (string) $response->getContent();
-//        self::assertStringContainsString(Message::CODE_ATTR, $r_body);
-//        self::assertStringContainsString(Message::MESSAGE_ATTR, $r_body);
-//        $r_data = json_decode($r_body, true);
-//        self::assertSame(Response::HTTP_FORBIDDEN, $r_data[Message::CODE_ATTR]);
-//        self::assertSame(
-//            '`Forbidden`: you don\'t have permission to access',
-//            $r_data[Message::MESSAGE_ATTR]
-//        );
-//    }
-
-    /**
      * *********
      * PROVIDERS
      * *********
@@ -548,11 +552,11 @@ class ApiResultsControllerTest extends BaseTestCase
      *
      * @return array [ method, url ]
      */
-//    public function routeProvider403(): array
-//    {
-//        return [
-//            'putAction403'    => [ Request::METHOD_PUT,    self::RUTA_API . '/1' ],
-//            'deleteAction403' => [ Request::METHOD_DELETE, self::RUTA_API . '/1' ],
-//        ];
-//    }
+    public function routeProvider403(): array
+    {
+        return [
+            'putAction403'    => [ Request::METHOD_PUT,    self::RUTA_API . '/1' ],
+            'deleteAction403' => [ Request::METHOD_DELETE, self::RUTA_API . '/1' ],
+        ];
+    }
 }

@@ -129,6 +129,12 @@ class ApiResultsController extends AbstractController
             ->getRepository(Result::class)
             ->find($resultId);
 
+        $format = Utils::getFormat($request);
+
+        if (empty($result)) {
+            return $this->error404($format);
+        }
+
         if (!$this->isGranted(self::ROLE_ADMIN)) {
             if($result->getUser()->getId() != $this->getUser()->getId()) {
                 throw new HttpException(   // 403
@@ -136,12 +142,6 @@ class ApiResultsController extends AbstractController
                     '`Forbidden`: you don\'t have permission to access'
                 );
             }
-        }
-
-        $format = Utils::getFormat($request);
-
-        if (empty($result)) {
-            return $this->error404($format);
         }
 
         return Utils::apiResponse(
@@ -354,6 +354,12 @@ class ApiResultsController extends AbstractController
             ->getRepository(Result::class)
             ->find($resultId);
 
+        $format = Utils::getFormat($request);
+
+        if (null === $result) {    // 404 - Not Found
+            return $this->error404($format);
+        }
+
         // Puede editar otro usuario diferente sólo si tiene ROLE_ADMIN
         if ((self::getUser()->getId() !== $result->getUser()->getId())
             && !$this->isGranted(self::ROLE_ADMIN)) {
@@ -364,11 +370,6 @@ class ApiResultsController extends AbstractController
         }
         $body = $request->getContent();
         $postData = json_decode($body, true);
-        $format = Utils::getFormat($request);
-
-        if (null === $result) {    // 404 - Not Found
-            return $this->error404($format);
-        }
 
         // result
         if (isset($postData[Result::RESULT_ATTR])) {
