@@ -6,7 +6,6 @@ use App\Entity\Message;
 use App\Entity\Result;
 use App\Entity\User;
 use App\Utility\Utils;
-use Cassandra\Date;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Security;
@@ -356,7 +355,7 @@ class ApiResultsController extends AbstractController
             ->find($resultId);
 
         // Puede editar otro usuario diferente sólo si tiene ROLE_ADMIN
-        if (($this->getUser()->getId() !== $result->getUser()->getId())
+        if ((self::getUser()->getId() !== $result->getUser()->getId())
             && !$this->isGranted(self::ROLE_ADMIN)) {
             throw new HttpException(   // 403
                 Response::HTTP_FORBIDDEN,
